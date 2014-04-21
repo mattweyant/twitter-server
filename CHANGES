@@ -6,6 +6,26 @@ as it is included in TwitterServer's user's guide.
 1.x
 -----
 
+1.6.2
+~~~~~~~
+
+- Add com.twitter.io.Charsets and replace the use of org.jboss.netty.util.CharsetUtil
+- Fix twitter-server execution test
+
+1.6.1
+~~~~~
+
+- upgrade finagle to 6.13.1
+- upgrade util to 6.13.2
+
+1.6.0
+~~~~~
+
+- upgrade finagle version to 6.13.0
+- Implement application-level shutdown handling in App.
+- Bug-fix: Refresh JVM memory snapshots on stats collection Motivation
+- Bug-fix: set content-length when responding from TwitterHandler
+
 1.5.1
 ~~~~~
 
