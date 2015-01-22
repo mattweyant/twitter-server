@@ -5,15 +5,22 @@ import com.typesafe.sbt.SbtSite.site
 import com.typesafe.sbt.site.SphinxSupport.Sphinx
 
 object TwitterServer extends Build {
-  val libVersion = "1.6.2"
-  val utilVersion = "6.14.0"
-  val finagleVersion = "6.14.0"
-  val jacksonVersion = "2.2.2"
+  val libVersion = "1.9.0"
+  val utilVersion = "6.23.0"
+  val finagleVersion = "6.24.0"
+  val mustacheVersion = "0.8.12.1"
 
-  val jacksonLibs = Seq(
-    "com.fasterxml.jackson.core" % "jackson-core" % jacksonVersion,
-    "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
-    "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion
+  // The following won't be necessary once we've upgraded internally to 2.4.
+  def jacksonVersion(scalaVersion: String) =
+    CrossVersion.partialVersion(scalaVersion) match {
+      case Some((2, 11)) => "2.4.4"
+      case _ => "2.3.1"
+    }
+  def jacksonLibs(scalaVersion: String) = Seq(
+    "com.fasterxml.jackson.core" % "jackson-core" % jacksonVersion(scalaVersion),
+    "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion(scalaVersion),
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion(scalaVersion) exclude("com.google.guava", "guava"),
+    "com.google.guava" % "guava" % "16.0.1"
   )
 
   def util(which: String) = "com.twitter" %% ("util-"+which) % utilVersion
@@ -22,9 +29,10 @@ object TwitterServer extends Build {
   val sharedSettings = Seq(
     version := libVersion,
     organization := "com.twitter",
-    crossScalaVersions := Seq("2.9.2", "2.10.0"),
+    scalaVersion := "2.10.4",
+    crossScalaVersions := Seq("2.10.4", "2.11.4"),
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "1.9.1" % "test",
+      "org.scalatest" %% "scalatest" % "2.2.2" % "test",
       "junit" % "junit" % "4.10" % "test",
       "org.mockito" % "mockito-all" % "1.9.5" % "test"
     ),
@@ -92,8 +100,16 @@ object TwitterServer extends Build {
       finagle("zipkin"),
       util("app"),
       util("core"),
-      util("jvm")
-    ) ++ jacksonLibs
+      util("jvm"),
+      "com.github.spullara.mustache.java" % "compiler" % mustacheVersion
+    ),
+    libraryDependencies <++= scalaVersion(jacksonLibs(_)),
+    ivyXML :=
+      <dependencies>
+        <dependency org="com.github.spullara.mustache.java" name="compiler" rev={mustacheVersion}>
+          <exclude org="com.google.guava" name="guava"/>
+        </dependency>
+      </dependencies>
   )
 
   lazy val twitterServerDoc = Project(
@@ -105,7 +121,7 @@ object TwitterServer extends Build {
       site.settings ++
       site.sphinxSupport() ++
       Seq(
-        scalacOptions in doc <++= (version).map(v => Seq("-doc-title", "Twitter-server", "-doc-version", v)),
+        scalacOptions in doc <++= (version).map(v => Seq("-doc-title", "TwitterServer", "-doc-version", v)),
         includeFilter in Sphinx := ("*.html" | "*.png" | "*.js" | "*.css" | "*.gif" | "*.txt")
       )
     ).configs(DocTest).settings(

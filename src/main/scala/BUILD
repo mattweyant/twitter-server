@@ -1,18 +1,23 @@
 # main twitter-server
 
 scala_library(name='scala',
+  provides = scala_artifact(
+    org = 'com.twitter',
+    name = 'twitter-server',
+    repo = artifactory,
+  ),
   dependencies=[
-    pants('3rdparty:jackson-core'),
-    pants('3rdparty:jackson-databind'),
-    pants('3rdparty:jackson-module-scala'),
-    pants('finagle/finagle-core'),
-    pants('finagle/finagle-http'),
-    pants('finagle/finagle-zipkin'),
-    pants('util/util-app'),
-    pants('util/util-core'),
-    pants('util/util-jvm'),
-    pants('util/util-logging')
+    '3rdparty/jvm/com/fasterxml/jackson/core:jackson-core',
+    '3rdparty/jvm/com/fasterxml/jackson/core:jackson-databind',
+    '3rdparty/jvm/com/fasterxml/jackson/module:jackson-module-scala',
+    'finagle/finagle-core',
+    'finagle/finagle-http',
+    'finagle/finagle-zipkin',
+    'util/util-app',
+    'util/util-core',
+    'util/util-jvm',
+    'util/util-logging'
   ],
   sources=rglobs('*.scala'),
-  resources=[pants('twitter-server/src/main/resources')]
+  resources=['twitter-server/src/main/resources'],
 )
